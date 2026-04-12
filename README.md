@@ -30,7 +30,16 @@ npm run preview
 
 ## Rankings
 
-- The **Rankings** table is also stored locally. It ranks players by **level**, then **peak tile**, then **best score**, using the best values recorded for each account on this device.
+- **Online (Vercel + Neon):** After you connect Neon Postgres to the Vercel project and create the `leaderboard` table (see SQL in earlier setup), the app calls **`/api/leaderboard`** to load and save rows. Everyone hitting your **deployed** site shares one leaderboard (sorted by level, then peak tile, then score).
+- **Offline / fallback:** The game still keeps a **copy in the browser** (`localStorage`). If the API fails (e.g. `npm run dev` without `vercel dev`, or DB not ready), Rankings falls back to **this device only**.
+
+### Local full-stack dev
+
+```bash
+npx vercel dev
+```
+
+Use the URL Vercel prints so `/api/leaderboard` works with your pulled env vars.
 
 ## Real multi-user auth (optional next step)
 

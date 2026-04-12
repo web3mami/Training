@@ -9,6 +9,10 @@ import {
   bestScoreStorageKey,
 } from "./auth.js";
 import {
+  fetchRemoteLeaderboard,
+  submitRemoteLeaderboard,
+} from "./leaderboardApi.js";
+import {
   newGameState,
   applyMove,
   continueAfterWin,
@@ -74,7 +78,7 @@ app.innerHTML = `
             <button type="submit" class="btn auth-submit" id="auth-submit">Continue</button>
           </form>
           <p class="auth-hint">
-            Usernames must be unique on this device. Rankings and “stay logged in” use browser storage (cache) — no server.
+            Accounts stay on this device. Rankings also sync to a shared online board (Neon) when you play on Vercel.
           </p>
         </div>
       </div>
@@ -168,7 +172,7 @@ app.innerHTML = `
         <div class="overlay hidden" id="rank-overlay" aria-hidden="true">
           <div class="overlay-card rank-card">
             <p class="overlay-title">Level rankings</p>
-            <p class="rank-sub">Sorted by level, then peak tile, then best score (this browser).</p>
+            <p class="rank-sub" id="rank-sub">Sorted by level, then peak tile, then best score. Loading…</p>
             <div class="rank-table-wrap">
               <table class="rank-table" id="rank-table">
                 <thead>
@@ -277,15 +281,18 @@ function syncSessionBar() {
   sessionDisplayEl.textContent = s ? `Playing as ${s.displayName}` : "";
 }
 
-function renderRankings() {
-  const rows = getLeaderboardRows();
+const rankSubEl = () => document.getElementById("rank-sub");
+
+function fillRankTable(rows, sourceLabel) {
+  const sub = rankSubEl();
+  if (sub) sub.textContent = sourceLabel;
   rankTbody.innerHTML = "";
   if (!rows.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = 5;
     td.className = "rank-empty";
-    td.textContent = "No runs recorded yet. Finish a game to appear here.";
+    td.textContent = "No scores yet. Play a round to show up here.";
     tr.appendChild(td);
     rankTbody.appendChild(tr);
     return;
@@ -304,6 +311,24 @@ function renderRankings() {
   });
 }
 
+async function renderRankings() {
+  rankTbody.innerHTML = "";
+  const sub = rankSubEl();
+  if (sub) sub.textContent = "Loading rankings…";
+  try {
+    const rows = await fetchRemoteLeaderboard();
+    fillRankTable(
+      Array.isArray(rows) ? rows : [],
+      "Sorted by level, then peak tile, then best score (online)."
+    );
+  } catch {
+    fillRankTable(
+      getLeaderboardRows(),
+      "Couldn’t load online rankings — showing this device only."
+    );
+  }
+}
+
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
@@ -313,9 +338,9 @@ function escapeHtml(s) {
 }
 
 btnRankings.addEventListener("click", () => {
-  renderRankings();
   rankOverlay.classList.remove("hidden");
   rankOverlay.setAttribute("aria-hidden", "false");
+  renderRankings();
 });
 
 rankClose.addEventListener("click", () => {
@@ -460,11 +485,19 @@ function syncLeaderboardLive() {
   const s = getSession();
   if (!s) return;
   const peak = maxTileInGrid(state.grid);
-  recordLeaderboardEntry(s.key, s.displayName, {
+  const payload = {
+    userKey: s.key,
+    displayName: s.displayName,
     level: levelFromMaxTile(peak),
     peakTile: peak,
     score: state.score,
+  };
+  recordLeaderboardEntry(s.key, s.displayName, {
+    level: payload.level,
+    peakTile: payload.peakTile,
+    score: payload.score,
   });
+  submitRemoteLeaderboard(payload).catch(() => {});
 }
 
 function showGameOver() {

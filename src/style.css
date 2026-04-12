@@ -21,6 +21,10 @@
   box-sizing: border-box;
 }
 
+.hidden {
+  display: none !important;
+}
+
 html {
   height: 100%;
   overflow-x: hidden;
@@ -46,6 +50,235 @@ body {
 #app {
   width: min(460px, 100%);
   touch-action: manipulation;
+}
+
+.app-root {
+  width: 100%;
+}
+
+.auth-view {
+  width: 100%;
+}
+
+.auth-card {
+  position: relative;
+  padding: 1.5rem 1.35rem 1.35rem;
+  border-radius: 22px;
+  background: var(--paper);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 24px rgba(168, 85, 247, 0.18),
+    0 24px 48px rgba(236, 72, 153, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  overflow: hidden;
+}
+
+.auth-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-title {
+  margin: 0 0 0.35rem;
+  text-align: center;
+}
+
+.auth-title .title-text {
+  font-size: 2.5rem;
+}
+
+.auth-sub {
+  margin: 0 0 1rem;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.auth-tab {
+  padding: 0.45rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  border: 2px solid rgba(168, 85, 247, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.auth-tab.is-active {
+  background: linear-gradient(160deg, #7c3aed 0%, #c026d3 100%);
+  color: var(--text-on-dark);
+  border-color: transparent;
+}
+
+.auth-error {
+  margin: 0 0 0.65rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.auth-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #86198f;
+  margin-top: 0.35rem;
+}
+
+.auth-input {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.88);
+  border: 2px solid rgba(168, 85, 247, 0.35);
+  border-radius: 10px;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.auth-submit {
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
+.auth-hint {
+  margin: 1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.game-view {
+  width: 100%;
+}
+
+.session-bar {
+  margin: 0.55rem 0 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.session-user {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #7c3aed;
+}
+
+.session-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.btn-text {
+  padding: 0.35rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #7c3aed;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-text:hover {
+  color: #5b21b6;
+}
+
+.btn-text-danger {
+  color: #be123c;
+}
+
+.rank-card {
+  max-width: 380px;
+}
+
+.rank-sub {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.rank-table-wrap {
+  max-height: 240px;
+  overflow: auto;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.rank-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.rank-table th,
+.rank-table td {
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+}
+
+.rank-table th {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #86198f;
+  background: rgba(250, 245, 255, 0.9);
+  position: sticky;
+  top: 0;
+}
+
+.rank-table tr.rank-you {
+  background: rgba(236, 72, 153, 0.12);
+  font-weight: 800;
+}
+
+.rank-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 
 .game-shell.anime-edition {
@@ -145,80 +378,6 @@ body {
   font-weight: 800;
   color: #be185d;
   letter-spacing: 0.01em;
-}
-
-.player-bar {
-  margin: 0.65rem 0 0;
-}
-
-.player-label {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #86198f;
-  margin-bottom: 0.35rem;
-}
-
-.player-controls {
-  display: flex;
-  gap: 0.45rem;
-  align-items: stretch;
-}
-
-.player-name-input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.5rem 0.65rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.88);
-  border: 2px solid rgba(168, 85, 247, 0.35);
-  border-radius: 10px;
-  outline: none;
-}
-
-.player-name-input:focus {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
-}
-
-.player-name-input::placeholder {
-  color: #a78bfa;
-  opacity: 0.85;
-}
-
-.btn-save-name {
-  flex-shrink: 0;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.85rem;
-  font-weight: 800;
-  font-family: inherit;
-  color: var(--text-on-dark);
-  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 3px 0 #5b21b6;
-}
-
-.btn-save-name:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #5b21b6;
-}
-
-.player-greeting {
-  margin: 0.45rem 0 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #9333ea;
-}
-
-.player-greeting.hidden {
-  display: none;
 }
 
 .score-row {

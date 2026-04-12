@@ -1,4 +1,4 @@
-import { greet } from "./utils.js";
+import { getPlayerName, setPlayerName } from "./utils.js";
 import {
   newGameState,
   applyMove,
@@ -24,7 +24,24 @@ app.innerHTML = `
         <p class="edition-badge" lang="en">Anime edition</p>
         <h1 class="game-title"><span class="title-text">2048</span></h1>
         <p class="love-note" lang="en">Hi Milla, I love you.</p>
-        <p class="tagline" id="tagline"></p>
+        <div class="player-bar">
+          <label class="player-label" for="player-name">Your name</label>
+          <div class="player-controls">
+            <input
+              type="text"
+              id="player-name"
+              class="player-name-input"
+              maxlength="24"
+              placeholder="Choose a name"
+              autocomplete="nickname"
+              enterkeyhint="done"
+            />
+            <button type="button" class="btn-save-name" id="player-save">
+              Save
+            </button>
+          </div>
+          <p class="player-greeting hidden" id="player-greeting" aria-live="polite"></p>
+        </div>
       </div>
       <div class="score-row">
         <div class="score-box">
@@ -97,9 +114,38 @@ app.innerHTML = `
   </main>
 `;
 
-document.getElementById("tagline").textContent = greet("Mami");
-
 const boardEl = document.getElementById("board");
+const playerNameInput = document.getElementById("player-name");
+const playerSaveBtn = document.getElementById("player-save");
+const playerGreetingEl = document.getElementById("player-greeting");
+
+function syncPlayerNameUi() {
+  const stored = getPlayerName();
+  playerNameInput.value = stored;
+  if (stored) {
+    playerGreetingEl.textContent = `Hello, ${stored}!`;
+    playerGreetingEl.classList.remove("hidden");
+  } else {
+    playerGreetingEl.textContent = "";
+    playerGreetingEl.classList.add("hidden");
+  }
+}
+
+function commitPlayerName() {
+  setPlayerName(playerNameInput.value);
+  syncPlayerNameUi();
+  boardEl.focus();
+}
+
+playerSaveBtn.addEventListener("click", commitPlayerName);
+playerNameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    commitPlayerName();
+  }
+});
+
+syncPlayerNameUi();
 const scoreEl = document.getElementById("score");
 const bestEl = document.getElementById("best");
 const subtextEl = document.getElementById("subtext");

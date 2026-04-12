@@ -235,6 +235,14 @@ boardEl.addEventListener(
 );
 
 boardEl.addEventListener(
+  "touchmove",
+  (e) => {
+    if (e.cancelable) e.preventDefault();
+  },
+  { passive: false }
+);
+
+boardEl.addEventListener(
   "touchend",
   (e) => {
     const p = e.changedTouches[0];

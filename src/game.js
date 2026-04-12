@@ -115,6 +115,16 @@ export function has2048(grid) {
   return grid.some((row) => row.some((v) => v >= 2048));
 }
 
+export function maxTileInGrid(grid) {
+  let m = 0;
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c] > m) m = grid[r][c];
+    }
+  }
+  return m;
+}
+
 export function newGameState() {
   let grid = emptyGrid();
   grid = addRandomTile(grid);

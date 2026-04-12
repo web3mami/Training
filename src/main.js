@@ -3,7 +3,13 @@ import {
   newGameState,
   applyMove,
   continueAfterWin,
+  maxTileInGrid,
 } from "./game.js";
+import {
+  MILESTONES,
+  levelFromMaxTile,
+  goalProgress,
+} from "./progression.js";
 import "./style.css";
 
 const BEST_KEY = "training-2048-best";
@@ -32,6 +38,29 @@ app.innerHTML = `
       </div>
     </header>
 
+    <section class="progress-panel" aria-label="Run stats">
+      <div class="meta-row">
+        <div class="meta-pill">
+          <span class="meta-label">Time</span>
+          <span class="meta-value mono" id="timer">0:00</span>
+        </div>
+        <div class="meta-pill">
+          <span class="meta-label">Level</span>
+          <span class="meta-value" id="level-val">1</span>
+        </div>
+        <div class="meta-pill">
+          <span class="meta-label">Peak</span>
+          <span class="meta-value" id="peak-tile">2</span>
+        </div>
+      </div>
+      <div class="goal-track">
+        <div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-bar">
+          <div class="goal-bar-fill" id="goal-bar-fill"></div>
+        </div>
+        <p class="goal-label" id="goal-label">Next goal: tile 4</p>
+      </div>
+    </section>
+
     <p class="subtext" id="subtext"></p>
 
     <div class="toolbar">
@@ -49,6 +78,11 @@ app.innerHTML = `
     <p class="help">
       Arrow keys or swipe — fuse your tiles and awaken <strong>2048</strong>!
     </p>
+
+    <div class="toast hidden" id="toast" role="status" aria-live="polite">
+      <p class="toast-title" id="toast-title"></p>
+      <p class="toast-body" id="toast-body"></p>
+    </div>
 
     <div class="overlay hidden" id="overlay" aria-hidden="true">
       <div class="overlay-card">
@@ -74,6 +108,10 @@ const overlayTitle = document.getElementById("overlay-title");
 const overlayMsg = document.getElementById("overlay-msg");
 const overlayPrimary = document.getElementById("overlay-primary");
 const overlaySecondary = document.getElementById("overlay-secondary");
+const toastEl = document.getElementById("toast");
+const toastTitleEl = document.getElementById("toast-title");
+const toastBodyEl = document.getElementById("toast-body");
+const goalBarEl = document.getElementById("goal-bar");
 
 function loadBest() {
   const n = Number(localStorage.getItem(BEST_KEY) || "0");
@@ -88,6 +126,76 @@ function saveBest(score) {
 let state = newGameState();
 let best = loadBest();
 bestEl.textContent = String(best);
+
+let sessionStart = null;
+let sessionFrozenMs = null;
+const milestoneSeen = new Set();
+let toastHideId = 0;
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatElapsed(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}:${pad2(m)}:${pad2(s)}`;
+  return `${m}:${pad2(s)}`;
+}
+
+function resetSessionTimer() {
+  sessionStart = Date.now();
+  sessionFrozenMs = null;
+}
+
+function tickTimer() {
+  const el = document.getElementById("timer");
+  if (!el) return;
+  if (sessionStart == null) {
+    el.textContent = "0:00";
+    return;
+  }
+  const ms = sessionFrozenMs ?? Date.now() - sessionStart;
+  el.textContent = formatElapsed(ms);
+}
+
+function showToast(title, body) {
+  toastTitleEl.textContent = title;
+  toastBodyEl.textContent = body;
+  toastEl.classList.remove("hidden");
+  window.clearTimeout(toastHideId);
+  toastHideId = window.setTimeout(() => {
+    toastEl.classList.add("hidden");
+  }, 3400);
+}
+
+function checkMilestones(peak) {
+  const crossed = MILESTONES.filter(
+    (m) => peak >= m.at && !milestoneSeen.has(m.at)
+  );
+  if (!crossed.length) return;
+  for (const m of crossed) milestoneSeen.add(m.at);
+  const hi = crossed[crossed.length - 1];
+  showToast(hi.title, hi.body);
+}
+
+function updateProgressHud() {
+  const peak = maxTileInGrid(state.grid);
+  document.getElementById("level-val").textContent = String(
+    levelFromMaxTile(peak)
+  );
+  document.getElementById("peak-tile").textContent = String(peak);
+  const { next, pct } = goalProgress(peak);
+  const fill = document.getElementById("goal-bar-fill");
+  fill.style.width = `${pct}%`;
+  goalBarEl.setAttribute("aria-valuenow", String(Math.round(pct)));
+  document.getElementById("goal-label").textContent =
+    next >= 16384
+      ? `Next tile goal: ${next} · ${Math.round(pct)}% (legend run!)`
+      : `Next tile goal: ${next} · ${Math.round(pct)}% of the way`;
+}
 
 function renderBoard() {
   boardEl.innerHTML = "";
@@ -129,8 +237,13 @@ function hideOverlay() {
 }
 
 function showGameOver() {
+  const runTime =
+    sessionFrozenMs ??
+    (sessionStart != null ? Date.now() - sessionStart : 0);
   overlayTitle.textContent = "Game over";
-  overlayMsg.textContent = `Final score: ${state.score}. Ready for a rematch?`;
+  overlayMsg.textContent = `Final score: ${state.score} · Time: ${formatElapsed(
+    runTime
+  )}. Ready for a rematch?`;
   overlayPrimary.textContent = "New game";
   overlaySecondary.classList.add("hidden");
   overlay.classList.remove("hidden");
@@ -163,6 +276,10 @@ function showYouWin() {
 
 function checkEndStates() {
   if (state.over) {
+    if (sessionStart != null && sessionFrozenMs == null) {
+      sessionFrozenMs = Date.now() - sessionStart;
+      tickTimer();
+    }
     saveBest(state.score);
     showGameOver();
     return;
@@ -181,8 +298,12 @@ function resetGame() {
   best = loadBest();
   bestEl.textContent = String(best);
   subtextEl.textContent = "";
+  milestoneSeen.clear();
+  resetSessionTimer();
   renderBoard();
   updateHud();
+  updateProgressHud();
+  tickTimer();
   boardEl.focus();
 }
 
@@ -193,6 +314,8 @@ function tryMove(dir) {
   state = next;
   renderBoard();
   updateHud();
+  checkMilestones(maxTileInGrid(state.grid));
+  updateProgressHud();
   checkEndStates();
 }
 
@@ -260,6 +383,11 @@ boardEl.addEventListener(
   { passive: true }
 );
 
+resetSessionTimer();
+window.setInterval(tickTimer, 250);
+
 renderBoard();
 updateHud();
+updateProgressHud();
+tickTimer();
 boardEl.focus();

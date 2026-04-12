@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin ·2048 stats</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      body {
+        max-width: 520px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      label {
+        display: block;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+      input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #f8fafc;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border: none;
+        background: #6366f1;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:hover {
+        filter: brightness(1.05);
+      }
+      pre {
+        margin-top: 1.25rem;
+        padding: 1rem;
+        background: #1e293b;
+        border-radius: 8px;
+        overflow: auto;
+        font-size: 0.85rem;
+        border: 1px solid #334155;
+      }
+      .err {
+        color: #fca5a5;
+        margin-top: 0.75rem;
+      }
+      p.hint {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>2048 · admin stats</h1>
+    <p class="hint">
+      Server-side only. Default login is <strong>Mami</strong> / <strong>Mami</strong> unless you set
+      <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> on Vercel.
+    </p>
+    <form id="form">
+      <label for="user">Admin username</label>
+      <input id="user" name="username" autocomplete="username" required />
+      <label for="pass">Admin password</label>
+      <input id="pass" name="password" type="password" autocomplete="current-password" required />
+      <button type="submit">Load stats</button>
+    </form>
+    <p id="err" class="err" hidden></p>
+    <pre id="out" hidden></pre>
+    <script>
+      const form = document.getElementById("form");
+      const out = document.getElementById("out");
+      const err = document.getElementById("err");
+      document.getElementById("user").value = "Mami";
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        err.hidden = true;
+        out.hidden = true;
+        const username = document.getElementById("user").value;
+        const password = document.getElementById("pass").value;
+        try {
+          const r = await fetch("/api/admin-stats", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            err.textContent = data.error || "Request failed";
+            err.hidden = false;
+            return;
+          }
+          out.textContent = JSON.stringify(data, null, 2);
+          out.hidden = false;
+        } catch {
+          err.textContent = "Network error";
+          err.hidden = false;
+        }
+      });
+    </script>
+  </body>
+</html>

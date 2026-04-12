@@ -41,6 +41,35 @@ npx vercel dev
 
 Use the URL Vercel prints so `/api/leaderboard` works with your pulled env vars.
 
+## Neon SQL (tables)
+
+Run in the Neon SQL editor if you have not already:
+
+```sql
+CREATE TABLE IF NOT EXISTS leaderboard (
+  user_key TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  level INT NOT NULL DEFAULT 1,
+  peak_tile INT NOT NULL DEFAULT 0,
+  score INT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS player_logins (
+  user_key TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  login_count INT NOT NULL DEFAULT 1
+);
+```
+
+## Admin stats (`/admin`)
+
+- Open **`/admin`** on your deployed site (rewrites to `admin.html`).
+- Default login: **`Mami`** / **`Mami`**. Set **`ADMIN_USERNAME`** and **`ADMIN_PASSWORD`** in Vercel **Environment Variables** for anything public.
+- Shows **unique players** who used **Sign in** or **Register** on the live site (server `player_logins` table), plus total login events and how many rows exist on the **leaderboard**.
+
 ## Real multi-user auth (optional next step)
 
 To support the same accounts everywhere and secure reset flows, you would connect the app to a hosted backend (for example Supabase or Firebase Auth) and replace the local-only account logic.

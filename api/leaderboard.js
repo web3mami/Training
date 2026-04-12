@@ -1,42 +1,9 @@
-import { neon } from "@neondatabase/serverless";
-
-const connectionString =
-  process.env.POSTGRES_URL ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.DATABASE_URL;
-
-function getSql() {
-  if (!connectionString) {
-    throw new Error("Missing POSTGRES_URL (or DATABASE_URL) for Neon");
-  }
-  return neon(connectionString);
-}
-
-function readJsonBody(req) {
-  try {
-    const b = req.body;
-    if (b == null) return {};
-    if (typeof b === "string") return JSON.parse(b || "{}");
-    if (typeof b === "object") return b;
-  } catch {
-    throw new SyntaxError("Invalid JSON");
-  }
-  return {};
-}
-
-function sanitizeUserKey(s) {
-  const t = String(s ?? "")
-    .trim()
-    .toLowerCase();
-  if (!/^[a-z0-9_]{3,18}$/.test(t)) return null;
-  return t;
-}
-
-function sanitizeDisplayName(s) {
-  return String(s ?? "")
-    .trim()
-    .slice(0, 24) || "Player";
-}
+import {
+  getSql,
+  readJsonBody,
+  sanitizeUserKey,
+  sanitizeDisplayName,
+} from "./lib/db.js";
 
 function sanitizeInt(n, max = 1_000_000_000) {
   const x = Number(n);

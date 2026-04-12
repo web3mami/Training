@@ -12,6 +12,7 @@ import {
   fetchRemoteLeaderboard,
   submitRemoteLeaderboard,
 } from "./leaderboardApi.js";
+import { recordPlayerLoginOnServer } from "./playerLoginApi.js";
 import {
   newGameState,
   applyMove,
@@ -267,6 +268,14 @@ authForm.addEventListener("submit", async (e) => {
     } else {
       const s = await loginAccount(user, pass);
       setSession(s);
+    }
+    const s = getSession();
+    if (s) {
+      try {
+        await recordPlayerLoginOnServer(s);
+      } catch {
+        /* offline or API missing — game still works */
+      }
     }
     enterGame();
   } catch (err) {
